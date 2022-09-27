@@ -118,23 +118,22 @@ app.delete(endpoint + 'produtos/:id', function (req, res) {
     })
 })
 
-app.post(endpoint + 'produtos', function (req, res) {
-    knex.select('*').from('produto') 
-    .then( produtos => {
-        const product = req.body;
-        const id = produtos.length + 1;
-
-        produtos.push({
-            ...product,
-            id
-        });
-        res.status(200).json(lista_produtos)
-    }) 
-    .catch(err => { 
-        res.status(500).json({  
-           message: 'Erro ao cadastrar produto - ' + err.message }) 
-    })
-})
+app.post (endpoint + 'produtos', (req, res) => { 
+    knex ('produto') 
+        .insert({ 
+            descricao: req.body.descricao,  
+            valor: req.body.valor,  
+            marca: req.body.marca 
+        }, ['id']) 
+        .then((result) => { 
+            res.status(201).json({})  
+            return 
+        }) 
+        .catch(err => { 
+            res.status(500).json({  
+                message: 'Erro ao registrar produto - ' + err.message }) 
+        })   
+}) 
 
 app.listen(process.env.PORT || 3000, function () {
     console.log("Express server listening on port %d in %s mode", this.address().port, app.settings.env);
