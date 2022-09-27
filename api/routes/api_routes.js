@@ -66,9 +66,8 @@ app.get(endpoint + 'produtos', jsonParser, function (req, res) {
 
 app.get(endpoint + 'produtos/:id', jsonParser, function (req, res) {
     knex.select('*').from('produto') 
-    .then( produtos => {
-        const product = produtos.produtos.find(p => p.id == req.params.id)
-
+    .where({id: req.params.id})
+    .then( product => {
         if (!product) {
             return res.status(404).json();
         }
@@ -80,45 +79,38 @@ app.get(endpoint + 'produtos/:id', jsonParser, function (req, res) {
     })   
 })
 
-app.put(endpoint + 'produtos/:id', jsonParser, function (req, res) {
-    knex.select('*').from('produto') 
-    .then( produtos => {
-        const product = req.body;
-        const id = req.params.id;
+app.put(endpoint + 'produtos/:id', jsonParser, async function (req, res) {
 
-        const old_product = produtos.find(p => p.id == req.params.id)
-        const index = produtos.indexOf(old_product);
+    const { id } = req.params;
+    const changes = req.body;
 
-        produtos[index] = {
-            ...product,
-            id
-        };
-
-        res.status(200).json(product)
-    }) 
-    .catch(err => { 
-        res.status(500).json({  
-           message: 'Erro ao atualizar produto - ' + err.message }) 
-    })
+    try {
+        const count = await knex('produto').where({ id }).update(changes)
+        if (count) {
+            res.status(200).json({ updated: count })
+        } else {
+            res.status(404).json({ message: "Record not found" })
+        }
+    } catch (err) {
+        res.status(500).json({ message: "Erro atualizando produto", error: err })
+    }
 })
 
 app.delete(endpoint + 'produtos/:id', jsonParser, function (req, res) {
     
-    knex.select('*').from('produto') 
-    .then( produtos => {
-        const old_product = produtos.find(p => p.id == req.params.id)
-        const index = produtos.indexOf(old_product);
+    knex('produto')
+        .delete().where({id: req.params.id}) 
+        .then( product => {
+            if (product) {
+                return res.status(204).json()
+            }
 
-        if (index > -1) {
-            produtos.splice(index, 1);
-        }
-
-        res.status(204).json()
-    }) 
-    .catch(err => { 
-        res.status(500).json({  
-           message: 'Erro ao deletar produtos - ' + err.message }) 
-    })
+            return res.status(404).json()
+        }) 
+        .catch(err => { 
+            res.status(500).json({  
+            message: 'Erro ao deletar produtos - ' + err.message }) 
+        })
 })
 
 app.post (endpoint + 'produtos', jsonParser, (req, res) => { 
