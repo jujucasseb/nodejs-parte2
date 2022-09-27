@@ -1,6 +1,9 @@
 const express = require('express')
 const app = express()
 const port = 3000
+var bodyParser = require('body-parser')
+// create application/json parser
+var jsonParser = bodyParser.json()
 
 const knex = require('knex')({ 
     client: 'pg', 
@@ -48,11 +51,11 @@ const lista_produtos = {
     ]
 }
 
-app.get(endpoint, function (req, res) {
+app.get(endpoint, jsonParser, function (req, res) {
     res.send('index');
 })
 
-app.get(endpoint + 'produtos', function (req, res) {
+app.get(endpoint + 'produtos', jsonParser, function (req, res) {
     knex.select('*').from('produto') 
     .then( produtos => res.status(200).json(produtos) ) 
     .catch(err => { 
@@ -61,7 +64,7 @@ app.get(endpoint + 'produtos', function (req, res) {
     })   
 })
 
-app.get(endpoint + 'produtos/:id', function (req, res) {
+app.get(endpoint + 'produtos/:id', jsonParser, function (req, res) {
     knex.select('*').from('produto') 
     .then( produtos => {
         const product = produtos.produtos.find(p => p.id == req.params.id)
@@ -77,7 +80,7 @@ app.get(endpoint + 'produtos/:id', function (req, res) {
     })   
 })
 
-app.put(endpoint + 'produtos/:id', function (req, res) {
+app.put(endpoint + 'produtos/:id', jsonParser, function (req, res) {
     knex.select('*').from('produto') 
     .then( produtos => {
         const product = req.body;
@@ -99,7 +102,7 @@ app.put(endpoint + 'produtos/:id', function (req, res) {
     })
 })
 
-app.delete(endpoint + 'produtos/:id', function (req, res) {
+app.delete(endpoint + 'produtos/:id', jsonParser, function (req, res) {
     
     knex.select('*').from('produto') 
     .then( produtos => {
@@ -118,7 +121,7 @@ app.delete(endpoint + 'produtos/:id', function (req, res) {
     })
 })
 
-app.post (endpoint + 'produtos', (req, res) => { 
+app.post (endpoint + 'produtos', jsonParser, (req, res) => { 
     knex ('produto') 
         .insert({ 
             descricao: req.body.descricao,  
